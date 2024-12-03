@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	result, err := days.FirstPartDayOne()
+	result, err := days.DayTwoWork()
 	if err != nil {
 		fmt.Printf("error in getting locId from data: %v\n", err)
 	}
