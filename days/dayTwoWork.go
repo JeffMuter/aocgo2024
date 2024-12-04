@@ -93,8 +93,9 @@ func checkForDecreasing(intSlice []int) error { // only called when index0 is co
 }
 
 func removeIndex(index int, slice []int) []int {
-	slice = append(slice[:index], slice[index+1:]...)
-	return slice
+	newSlice := make([]int, len(slice)) // Create a copy of the slice
+	copy(newSlice, slice)               // Copy the elements into the new slice
+	return append(newSlice[:index], newSlice[index+1:]...)
 }
 
 func checkForSafe(slice []int) error {
@@ -116,9 +117,10 @@ func checkForSafe(slice []int) error {
 
 func checkForNearlySafe(slice []int) error {
 	// loop through the slice, removing one element at a time, calling checkforsafe on each variation if any are safe, return nil, otherwise, if all variations arent safe, return err
-	for i := range slice {
+	for i := 0; i < len(slice); i++ {
 		var poppedSlice []int
 		poppedSlice = removeIndex(i, slice)
+		fmt.Printf("slice popped: %v... altered variant: %v\n", slice, poppedSlice)
 		err := checkForSafe(poppedSlice)
 		if err != nil {
 			continue
