@@ -1,7 +1,7 @@
 package main
 
 import (
-	"aocgo2024/daythree"
+	"aocgo2024/days/daythree"
 	"fmt"
 )
 
