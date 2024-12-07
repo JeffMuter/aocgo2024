@@ -3,10 +3,13 @@ package daythree
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
 func CreateResult() (int, error) {
+
+	var result int
 
 	text, err := getChallengeStringFromFile()
 	if err != nil {
@@ -14,22 +17,101 @@ func CreateResult() (int, error) {
 	}
 
 	delimiter := "mul("
-	var strippedText string
 
-	splitByPrepend := strings.SplitAfter(text, delimiter)
+	splitByPrepend := strings.Split(text, delimiter)
 
-	for i := range splitByPrepend {
+	fmt.Printf("length of split: %d\nsplit value: %v\n\n", len(splitByPrepend), splitByPrepend)
+
+	for i := 0; i < len(splitByPrepend); i++ {
+
 		fmt.Println(splitByPrepend[i])
-		strippedText += splitByPrepend[i]
+		if len(splitByPrepend[i]) < 4 {
+			fmt.Printf("continue, assuming string is not long enough to contain valid input: %s\n", splitByPrepend[i])
+			continue
+		}
+		before := splitByPrepend[i]
+
+		afterRemMul := splitByPrepend[i]
+
+		indexOfParenthesisEnd := strings.Index(splitByPrepend[i], ")")
+
+		// if either end parenthesis missing, invalid, remove
+		if indexOfParenthesisEnd == -1 {
+			splitByPrepend = append(splitByPrepend[:i], splitByPrepend[i+1:]...)
+			i--
+			fmt.Println("couldnt find end parenth, ending for this string...")
+			continue
+		}
+
+		// remove everything after ')'
+		currentStringNoEndParenthesis := splitByPrepend[i][:indexOfParenthesisEnd]
+		splitByPrepend[i] = currentStringNoEndParenthesis
+
+		// check for existing comma here, grab its index for splitting? maybe better way to validate during splitting.
+		indexOfComma := strings.Index(splitByPrepend[i], ",")
+		if indexOfComma == -1 {
+			splitByPrepend = append(splitByPrepend[:i], splitByPrepend[i+1:]...)
+			i--
+			fmt.Println("couldnt find index of comma continuing...")
+			continue
+		}
+
+		splitPairForMultiplication := strings.Split(splitByPrepend[i], ",")
+		if len(splitPairForMultiplication) != 2 {
+			splitByPrepend = append(splitByPrepend[:i], splitByPrepend[i+1:]...)
+			i--
+			fmt.Println("length of split pair not 2... invalid... contuiing...")
+			continue
+		}
+
+		firstInt, err := strconv.Atoi(splitPairForMultiplication[0])
+		if err != nil {
+			fmt.Println("first of multiplication pair was not an int..." + splitPairForMultiplication[0])
+			splitByPrepend = append(splitByPrepend[:i], splitByPrepend[i+1:]...)
+			i--
+			continue
+		}
+
+		secondInt, err := strconv.Atoi(splitPairForMultiplication[1])
+		if err != nil {
+			fmt.Println("second of multiplication pair was not an int..." + splitPairForMultiplication[1])
+			splitByPrepend = append(splitByPrepend[:i], splitByPrepend[i+1:]...)
+			i--
+			continue
+		}
+
+		result += firstInt * secondInt
+
+		fmt.Printf(
+			"initial string: %s\n"+
+				"after removing mul(: %s\n"+
+				"index of endPar: %d\n"+
+				"commaIndex: %d\n"+
+				"finalstringvalue: %s\n"+
+				"firstSplitOfPair: %s\n"+
+				"second: %s\n\n",
+
+			before,
+			afterRemMul,
+			indexOfParenthesisEnd,
+			indexOfComma,
+			splitByPrepend[i],
+			splitPairForMultiplication[0],
+			splitPairForMultiplication[1],
+		)
 	}
 
-	splitByPostend := strings.SplitAfter(strippedText, ")")
+	//	splitByPostend := strings.SplitAfter(strippedText, ")")
 
-	for i := range splitByPostend {
-		fmt.Printf("line: %s	%s\n", splitByPrepend[i], splitByPostend[i])
+	//	for i := range splitByPostend {
+	//		fmt.Printf("firstStrip: %s\nsecondSplit: %s\n\n", splitByPrepend[i], splitByPostend[i])
+	//	}
+
+	if result == 0 {
+		return -1, fmt.Errorf("result is 0, check for input issues... %v", text)
 	}
 
-	return -1, nil
+	return result, nil
 }
 
 func splitBefore(input, delimiter string) ([]string, error) {
